@@ -1,9 +1,12 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <title>EngliSQL - English to SQL Converter</title>
 </head>
-<body>
+
+
+<body class="bg-gray-400 text-gray-900 p-6">
     <h1>Welcome to EngliSQL</h1>
 
     <form method="POST">
@@ -16,23 +19,26 @@
         </select><br><br>
 
         <label for="user_schema">Optional: Paste your table & Column Schema</label>
-        <textarea name="user_schema" id="user_schema" rows ="3", cols="60" placeholder="e.g. Table: users(id, name, email)"></textarea><br><br>
+        <textarea name="user_schema" id="user_schema" rows="3" , cols="60"
+            placeholder="e.g. Table: users(id, name, email)"></textarea><br><br>
 
         <label for="english_query">Enter your English query:</label><br>
-        <textarea name="english_query" id="english_query" rows="5" cols="60" required placeholder="e.g. Show me all users with email ending in '@example.com'"></textarea><br><br>
+        <textarea name="english_query" id="english_query" rows="5" cols="60" required
+            placeholder="e.g. Show me all users with email ending in '@example.com'"></textarea><br><br>
 
         <button type="submit">Convert to SQL</button>
-        
+
 
     </form>
     {% if sql_query %}
-        <h2>Generated SQL Query:</h2>
-        <pre>{{ sql_query }}</pre>
+    <h2>Generated SQL Query:</h2>
+    <pre>{{ sql_query }}</pre>
     {% endif %}
 
     {% if error %}
-        <h2>Error:</h2>
-        <p>{{ error }}</p>
+    <h2>Error:</h2>
+    <p>{{ error }}</p>
     {% endif %}
 </body>
+
 </html>
