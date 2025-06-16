@@ -1,31 +1,45 @@
-import openai
-import os
-from dotenv import load_dotenv
-
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-load_dotenv(os.path.join(BASE_DIR, '.env'))
-
-openai.api_key = os.getenv("OPENAI_API_KEY")
-
+import requests
+import re
 
 def generate_sql_from_english(english_text, schema_type, user_schema=""):
-    system_prompt = f"You are a helpful assistant that converts English to {schema_type} SQL."
+    prompt = f"""You are a professional SQL query generator. 
+Your job is to translate natural language into accurate {schema_type} SQL queries.
 
+ONLY return the SQL query.
+DO NOT explain anything.
+DO NOT include backticks or markdown syntax.
+DO NOT say anything before or after the SQL.
+"""
     if user_schema.strip():
-        system_prompt += f" The database schema is: {user_schema}"
-
-    messages = [
-        {"role": "system", "content": system_prompt},
-        {"role": "user", "content": f"English: {english_text}"}
-    ]
+        prompt += f"The database schema is: {user_schema}\n"
+    prompt += f"English: {english_text}"
 
     try:
-        response = openai.ChatCompletion.create(
-            model = "o3-mini-2025-01-31",
-            messages = messages,
-            temperature = 0.3
+        response = requests.post(
+            "http://localhost:11434/api/generate",
+            json={
+                "model": "phi",  # You're using mistral
+                "prompt": prompt,
+                "stream": False
+            }
         )
-        return response['choices'][0]['message']['content'].strip()
-    
+
+        response.raise_for_status()
+        result = response.json()
+        full_response = result["response"].strip()
+
+        # Extract SQL code block using regex
+        match = re.search(r"```sql\s+(.*?)```", full_response, re.DOTALL | re.IGNORECASE)
+        if match:
+            return match.group(1).strip()
+        
+        # Fallback: extract SELECT/INSERT/etc. if no code block is found
+        lines = full_response.splitlines()
+        for line in lines:
+            if line.strip().lower().startswith(("select", "insert", "update", "delete", "create", "drop")):
+                return line.strip()
+
+        return full_response  # last resort
+
     except Exception as e:
-        return f"== Error generating SQL : {str(e)}" 
+        return f"== Error generating SQL: {str(e)}"
