@@ -14,7 +14,7 @@ EngliSQL is a simple web app that lets users type questions in English and conve
 ## 🛠 Tech Stack
 
 - **Backend:** Django  
-- **LLM:** Ollama (e.g., llama3 or mistral)  
+- **LLM:** Ollama (e.g., phi or mistral)  
 - **Frontend:** HTML, CSS, JavaScript  
 - **Language:** Python  
 
