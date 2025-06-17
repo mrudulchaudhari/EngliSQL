@@ -3,42 +3,200 @@
 
 <head>
     <title>EngliSQL - English to SQL Converter</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: #e0f7f9;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            background-color: #fce2e2;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+            width: 100%;
+            max-width: 700px;
+            animation: fadeIn 0.8s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        h1 {
+            text-align: center;
+            color: #001b2d;
+            margin-bottom: 30px;
+        }
+
+        label {
+            font-weight: bold;
+            display: block;
+            margin-bottom: 8px;
+            color: #222;
+        }
+
+        select,
+        textarea {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 20px;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            font-size: 1em;
+        }
+
+        textarea {
+            resize: none;
+        }
+
+        button {
+            background-color: #001b2d;
+            color: white;
+            border: none;
+            padding: 14px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: background-color 0.3s ease;
+            display: block;
+            margin: 0 auto;
+        }
+
+        button:hover {
+            background-color: #3742fa;
+        }
+
+        h2 {
+            text-align: center;
+            color: #222;
+            margin-top: 30px;
+        }
+
+        pre {
+            background-color: #f1f1f1;
+            padding: 15px;
+            border-radius: 10px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            margin-top: 20px;
+        }
+
+        p {
+            text-align: center;
+            color: rgb(7, 58, 0);
+        }
+
+        .spinner {
+            border: 6px solid #f3f3f3;
+            border-top: 6px solid #4a4aef;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 30px auto;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
 </head>
 
+<body>
+    <div class="container">
+        <h1>Welcome to EngliSQL</h1>
 
-<body class="bg-gray-400 text-gray-900 p-6">
-    <h1>Welcome to EngliSQL</h1>
+        <form method="POST" id="query-form" onsubmit="return showLoader()">
+            {% csrf_token %}
 
-    <form method="POST">
-        {% csrf_token %}
-        <label for="schema">SQL Dialect:</label>
-        <select name="schema" id="schema">
-            <option value="MySQL">MySQL</option>
-            <option value="SQLite">SQLite</option>
-            <option value="PostgreSQL">PostgreSQL</option>
-        </select><br><br>
+            <label for="schema">SQL Dialect:</label>
+            <select name="schema" id="schema">
+                <option value="MySQL">MySQL</option>
+                <option value="SQLite">SQLite</option>
+                <option value="PostgreSQL">PostgreSQL</option>
+            </select>
 
-        <label for="user_schema">Optional: Paste your table & Column Schema</label>
-        <textarea name="user_schema" id="user_schema" rows="3" , cols="60"
-            placeholder="e.g. Table: users(id, name, email)"></textarea><br><br>
+            <label for="user_schema">Optional: Paste your table & Column Schema</label>
+            <textarea name="user_schema" id="user_schema" rows="3"
+                placeholder="e.g. Table: users(id, name, email)"></textarea>
 
-        <label for="english_query">Enter your English query:</label><br>
-        <textarea name="english_query" id="english_query" rows="5" cols="60" required
-            placeholder="e.g. Show me all users with email ending in '@example.com'"></textarea><br><br>
+            <label for="english_query">Enter your English query:</label>
+            <textarea name="english_query" id="english_query" rows="5" required
+                placeholder="e.g. Show me all users with email ending in '@example.com'"></textarea>
 
-        <button type="submit">Convert to SQL</button>
+            <button type="submit" id="submit-btn">Convert to SQL</button>
+        </form>
 
+        <div id="loader" style="display:none;">
+            <div class="spinner"></div>
+            <p style="text-align:center;">Generating your SQL query...</p>
+        </div>
 
-    </form>
-    {% if sql_query %}
-    <h2>Generated SQL Query:</h2>
-    <pre>{{ sql_query }}</pre>
-    {% endif %}
+        {% if sql_query %}
+        <div id="result-box">
+            <h2>Generated SQL Query:</h2>
+            <pre id="sqlOutput">{{ sql_query }}</pre>
+            <button onclick="copyToClipboard()">Copy to Clipboard</button>
+        </div>
+        {% endif %}
 
-    {% if error %}
-    <h2>Error:</h2>
-    <p>{{ error }}</p>
-    {% endif %}
+        {% if error %}
+        <h2 style="color:red;">Error:</h2>
+        <p>{{ error }}</p>
+        {% endif %}
+    </div>
+
+    <script>
+        function showLoader() {
+            // Hide any previous output
+            const resultBox = document.getElementById("result-box");
+            if (resultBox) {
+                resultBox.style.display = "none";
+            }
+
+            // Show spinner and disable button
+            document.getElementById("loader").style.display = "block";
+            const btn = document.getElementById("submit-btn");
+            btn.textContent = "Loading...";
+            btn.disabled = true;
+
+            return true; // allow form to submit
+        }
+
+        function copyToClipboard() {
+            const text = document.getElementById('sqlOutput').innerText;
+            navigator.clipboard.writeText(text).then(() => {
+                alert("SQL query copied to clipboard!");
+            }).catch(() => {
+                alert("Failed to copy. Please try manually.");
+            });
+        }
+    </script>
 </body>
 
 </html>
