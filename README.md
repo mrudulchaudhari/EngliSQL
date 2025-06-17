@@ -43,3 +43,8 @@ This will install phi model, if you want to try other and faster models, you can
 
 Ensure that you change the model in prompts.py
 
+### 📽️ Demo Video
+
+https://github.com/user-attachments/assets/9df78d8f-bc7d-416f-9008-6b6bdb1a6fab
+
+
