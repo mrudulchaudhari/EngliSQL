@@ -1,4 +1,4 @@
-# EngliSQL# EngliSQL 🧠➡️💾  
+# EngliSQL 🧠➡️💾  
 **Convert natural language into SQL queries using LLMs.**
 
 EngliSQL is a simple web app that lets users type questions in English and converts them into SQL queries. It supports multiple SQL dialects and provides an optional way to define custom schemas. Built using Django and powered by an LLM via Ollama, it's a lightweight, intuitive tool for developers, analysts, or anyone learning SQL.
